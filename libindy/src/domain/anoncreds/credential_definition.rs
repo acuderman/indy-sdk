@@ -14,6 +14,7 @@ use ursa::cl::{
 };
 
 use std::collections::HashMap;
+use ursa::bn::BigNumber;
 
 pub const CL_SIGNATURE_TYPE: &str = "CL";
 
@@ -33,13 +34,19 @@ impl SignatureType {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CredentialDefinitionConfig {
     #[serde(default)]
-    pub support_revocation: bool
+    pub support_revocation: bool,
+    #[serde(default)]
+    pub p_safe: Option<BigNumber>,
+    #[serde(default)]
+    pub q_safe: Option<BigNumber>,
 }
 
 impl Default for CredentialDefinitionConfig {
     fn default() -> Self {
         CredentialDefinitionConfig {
-            support_revocation: false
+            support_revocation: false,
+            p_safe: None,
+            q_safe: None
         }
     }
 }

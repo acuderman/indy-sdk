@@ -67,8 +67,10 @@ default-features = false
 features = ["v4"]
 
 [dependencies.ursa]
-version =  "0.3.2"
+version = "0.3.2"
 optional = true
+git = 'https://github.com/acuderman/ursa.git'
+branch = 'feat-pregenerated-primes-support'
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.5"

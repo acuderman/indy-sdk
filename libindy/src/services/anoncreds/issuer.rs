@@ -15,7 +15,7 @@ use ursa::cl::issuer::Issuer as CryptoIssuer;
 
 use crate::domain::anoncreds::schema::AttributeNames;
 use crate::domain::anoncreds::credential::CredentialValues;
-use crate::domain::anoncreds::credential_definition::{CredentialDefinitionData, CredentialDefinitionV1 as CredentialDefinition};
+use crate::domain::anoncreds::credential_definition::{CredentialDefinitionData, CredentialDefinitionV1 as CredentialDefinition, CredentialDefinitionConfig};
 use crate::domain::anoncreds::credential_request::CredentialRequest;
 use crate::domain::anoncreds::revocation_registry_definition::{RevocationRegistryDefinitionV1, RevocationRegistryDefinitionValuePublicKeys};
 use crate::domain::crypto::did::DidValue;
@@ -30,7 +30,7 @@ impl Issuer {
     }
 
     pub fn new_credential_definition(attr_names: &AttributeNames,
-                                     support_revocation: bool) -> IndyResult<(CredentialDefinitionData,
+                                     cred_def_config: &CredentialDefinitionConfig) -> IndyResult<(CredentialDefinitionData,
                                                                               CredentialPrivateKey,
                                                                               CredentialKeyCorrectnessProof)> {
         trace!("new_credential_definition >>> attr_names: {:?}, support_revocation: {:?}", attr_names, support_revocation);
@@ -38,18 +38,37 @@ impl Issuer {
         let credential_schema = build_credential_schema(&attr_names.0)?;
         let non_credential_schema = build_non_credential_schema()?;
 
-        let (credential_public_key, credential_private_key, credential_key_correctness_proof) =
-            CryptoIssuer::new_credential_def(&credential_schema, &non_credential_schema, support_revocation)?;
+        let has_predefined_safe_primes: bool = match &cred_def_config.q_safe {
+            Some(config_with_q) => match &cred_def_config.p_safe {
+                Some(config_with_primes) => true,
+                None => false
+            },
+            None => false
+        };
+
+        let cred_def_keys;
+
+        if has_predefined_safe_primes == true {
+            cred_def_keys = CryptoIssuer::new_credential_def_with_primes(
+                    &credential_schema,
+                    &non_credential_schema,
+                    support_revocation,
+                    &cred_def_config.p_safe.unwrap(),
+                    &cred_def_config.q_safe.unwrap())?;
+
+        } else {
+            cred_def_keys = CryptoIssuer::new_credential_def(&credential_schema, &non_credential_schema, support_revocation)?;
+        }
 
         let credential_definition_value = CredentialDefinitionData {
-            primary: credential_public_key.get_primary_key()?.try_clone()?,
-            revocation: credential_public_key.get_revocation_key()?.clone(),
+            primary: cred_def_keys.credential_public_key.get_primary_key()?.try_clone()?,
+            revocation: cred_def_keys.credential_public_key.get_revocation_key()?.clone(),
         };
 
         trace!("new_credential_definition <<< credential_definition_value: {:?}, credential_private_key: {:?}, credential_key_correctness_proof: {:?}",
-               credential_definition_value, secret!(&credential_private_key), credential_key_correctness_proof);
+               credential_definition_value, secret!(&credential_private_key), cred_def_keys.credential_key_correctness_proof);
 
-        Ok((credential_definition_value, credential_private_key, credential_key_correctness_proof))
+        Ok((credential_definition_value, cred_def_keys.credential_private_key, cred_def_keys.credential_key_correctness_proof))
     }
 
     pub fn new_revocation_registry(&self,

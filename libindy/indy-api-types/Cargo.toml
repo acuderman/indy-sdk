@@ -22,9 +22,15 @@ serde_json = "1.0.40"
 serde_derive = "1.0.99"
 zmq = {version = "0.9.1", optional = true}
 
+#[dependencies.ursa]
+#version =  "0.3.2"
+#optional = true
+#features = ["logger"]
 [dependencies.ursa]
-version =  "0.3.2"
+version = "0.3.2"
 optional = true
+git = 'https://github.com/acuderman/ursa.git'
+branch = 'feat-pregenerated-primes-support'
 features = ["logger"]
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
