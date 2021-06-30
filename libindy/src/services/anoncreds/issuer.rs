@@ -30,6 +30,16 @@ impl Issuer {
         Issuer {}
     }
 
+    fn are_primes_predefined(cred_def_config: &CredentialDefinitionConfig) -> bool {
+        match &cred_def_config.q_safe {
+            Some(_config_with_q) => match &cred_def_config.p_safe {
+                Some(_config_with_primes) => true,
+                None => false
+            },
+            None => false
+        }
+    }
+
     pub fn new_credential_definition(attr_names: &AttributeNames,
                                      cred_def_config: &CredentialDefinitionConfig) -> IndyResult<(CredentialDefinitionData,
                                                                               CredentialPrivateKey,
@@ -39,17 +49,10 @@ impl Issuer {
         let credential_schema = build_credential_schema(&attr_names.0)?;
         let non_credential_schema = build_non_credential_schema()?;
 
-        let has_predefined_safe_primes: bool = match &cred_def_config.q_safe {
-            Some(_config_with_q) => match &cred_def_config.p_safe {
-                Some(_config_with_primes) => true,
-                None => false
-            },
-            None => false
-        };
+        let has_predefined_safe_primes: bool = Issuer::are_primes_predefined(cred_def_config);
+        let cred_def_keys: (CredentialPublicKey, CredentialPrivateKey, CredentialKeyCorrectnessProof);
 
-        let cred_def_keys;
-
-        if has_predefined_safe_primes == true {
+        if has_predefined_safe_primes {
             let q: &str = &cred_def_config.q_safe.as_ref().unwrap()[..];
             let p: &str = &cred_def_config.p_safe.as_ref().unwrap()[..];
 
