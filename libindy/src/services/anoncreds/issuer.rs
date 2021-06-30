@@ -34,8 +34,7 @@ impl Issuer {
                                      cred_def_config: &CredentialDefinitionConfig) -> IndyResult<(CredentialDefinitionData,
                                                                               CredentialPrivateKey,
                                                                               CredentialKeyCorrectnessProof)> {
-        // TODO: uncomment
-        // trace!("new_credential_definition >>> attr_names: {:?}, support_revocation: {:?}", attr_names, support_revocation);
+        trace!("new_credential_definition >>> attr_names: {:?}, cred_def_config: {:?}", attr_names, cred_def_config);
 
         let credential_schema = build_credential_schema(&attr_names.0)?;
         let non_credential_schema = build_non_credential_schema()?;
@@ -64,8 +63,7 @@ impl Issuer {
         } else {
             cred_def_keys = CryptoIssuer::new_credential_def(&credential_schema, &non_credential_schema, cred_def_config.support_revocation)?;
         }
-        // let credential_public_key = cred_def_keys.0;
-        // let credential_private_key = cred_def_keys.1;
+
         let (credential_public_key, credential_private_key, credential_key_correctness_proof) = cred_def_keys;
 
         let credential_definition_value = CredentialDefinitionData {
