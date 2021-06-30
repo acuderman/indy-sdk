@@ -184,11 +184,11 @@ pub fn to_unqualified(entity: &str) -> Result<String, IndyError> {
 }
 
 pub fn default_cred_def_config() -> String {
-    serde_json::to_string(&CredentialDefinitionConfig { support_revocation: false }).unwrap()
+    serde_json::to_string(&CredentialDefinitionConfig { support_revocation: false, p_safe: None, q_safe: None }).unwrap()
 }
 
 pub fn revocation_cred_def_config() -> String {
-    serde_json::to_string(&CredentialDefinitionConfig { support_revocation: true }).unwrap()
+    serde_json::to_string(&CredentialDefinitionConfig { support_revocation: true, p_safe: None, q_safe: None }).unwrap()
 }
 
 pub fn issuance_on_demand_rev_reg_config() -> String {

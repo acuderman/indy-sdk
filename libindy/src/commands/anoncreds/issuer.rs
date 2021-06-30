@@ -285,7 +285,7 @@ impl IssuerCommandExecutor {
         let tag = tag.to_string();
         let attr_names = schema.attr_names.clone();
 
-        self._create_credential_definition(&attr_names, cred_def_config.support_revocation, Box::new(move |res| {
+        self._create_credential_definition(&attr_names, &cred_def_config, Box::new(move |res| {
             CommandExecutor::instance().send(
                 Command::Anoncreds(
                     AnoncredsCommand::Issuer(
@@ -305,12 +305,13 @@ impl IssuerCommandExecutor {
 
     fn _create_credential_definition(&self,
                                      attr_names: &AttributeNames,
-                                     support_revocation: bool,
+                                     cred_def_config: &CredentialDefinitionConfig,
                                      cb: Box<dyn Fn(IndyResult<(CredentialDefinitionData,
                                                                 CredentialPrivateKey,
                                                                 CredentialKeyCorrectnessProof)>) + Send>) {
         let attr_names = attr_names.clone();
-        crate::commands::THREADPOOL.lock().unwrap().execute(move || cb(crate::services::anoncreds::issuer::Issuer::new_credential_definition(&attr_names, support_revocation)));
+        let cred_def_config = cred_def_config.clone();
+        crate::commands::THREADPOOL.lock().unwrap().execute(move || cb(crate::services::anoncreds::issuer::Issuer::new_credential_definition(&attr_names, &cred_def_config)));
     }
 
     fn _create_and_store_credential_definition_continue(&self,
@@ -439,9 +440,11 @@ impl IssuerCommandExecutor {
         let cb_id = indy_utils::sequence::get_next_id();
         self.pending_str_callbacks.borrow_mut().insert(cb_id, cb);
 
-        let support_revocation = cred_def_config.map(|config| config.support_revocation).unwrap_or_default();
 
-        self._create_credential_definition(&schema.attr_names, support_revocation, Box::new(move |res| {
+        let default_cred_def_config = CredentialDefinitionConfig::default();
+        let cred_def_config = cred_def_config.unwrap_or(&default_cred_def_config);
+
+        self._create_credential_definition(&schema.attr_names, &cred_def_config, Box::new(move |res| {
             CommandExecutor::instance().send(
                 Command::Anoncreds(
                     AnoncredsCommand::Issuer(
