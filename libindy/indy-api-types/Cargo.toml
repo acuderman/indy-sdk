@@ -22,10 +22,6 @@ serde_json = "1.0.40"
 serde_derive = "1.0.99"
 zmq = {version = "0.9.1", optional = true}
 
-#[dependencies.ursa]
-#version =  "0.3.2"
-#optional = true
-#features = ["logger"]
 [dependencies.ursa]
 version = "0.3.2"
 optional = true
