@@ -21,6 +21,7 @@ use crate::domain::anoncreds::revocation_registry_definition::{RevocationRegistr
 use crate::domain::crypto::did::DidValue;
 use indy_api_types::errors::prelude::*;
 use crate::services::anoncreds::helpers::*;
+use ursa::bn::BigNumber;
 
 pub struct Issuer {}
 
@@ -45,8 +46,12 @@ impl Issuer {
             let q: &str = &cred_def_config.q_safe.as_ref().unwrap()[..];
             let p: &str = &cred_def_config.p_safe.as_ref().unwrap()[..];
 
-            cred_def_keys = CryptoIssuer::new_credential_def(&credential_schema, &non_credential_schema, cred_def_config.support_revocation)?;
-
+            cred_def_keys = CryptoIssuer::new_credential_def_with_primes(
+                &credential_schema,
+                &non_credential_schema,
+                cred_def_config.support_revocation,
+                &BigNumber::from_dec(&p).unwrap(),
+                &BigNumber::from_dec(&q).unwrap())?;
 
         } else {
             cred_def_keys = CryptoIssuer::new_credential_def(&credential_schema, &non_credential_schema, cred_def_config.support_revocation)?;
